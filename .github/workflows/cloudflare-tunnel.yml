@@ -1,4 +1,4 @@
-name: Cloudflare Tunnel Deploy
+name: Cloudflare Tunnel
 
 on:
   workflow_dispatch: # Executa manualmente
@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  run-tunnel:
+  tunnel:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,17 +16,11 @@ jobs:
 
       - name: Instalar Cloudflared
         run: |
-          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
+          sudo mkdir -p --mode=0755 /usr/share/keyrings
+          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+          sudo apt-get update && sudo apt-get install cloudflared -y
 
       - name: Iniciar túnel Cloudflare
         run: |
-          nohup cloudflared tunnel run --token ${{ secrets.CF_TUNNEL_TOKEN }} &
-          sleep 5
-          cloudflared tunnel list
-
-      - name: Iniciar servidor
-        run: |
-          # Exemplo para Node.js
-          npm install
-          npm start
+          cloudflared tunnel run --token ${{ secrets.CF_TUNNEL_TOKEN }}
