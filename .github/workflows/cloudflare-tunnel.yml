@@ -7,20 +7,19 @@ on:
       - main
 
 jobs:
-  tunnel:
+  cloudflare-tunnel:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Instalar Cloudflared
+      - name: Install cloudflared
         run: |
-          sudo mkdir -p --mode=0755 /usr/share/keyrings
-          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
-          sudo apt-get update && sudo apt-get install cloudflared -y
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
 
-      - name: Iniciar túnel Cloudflare
-        run: |
-          cloudflared tunnel run --token ${{ secrets.CF_TUNNEL_TOKEN }}
+      - name: Authenticate cloudflared
+        run: cloudflared tunnel login --token ${{ secrets.CLOUDFLARE_TOKEN }}
+
+      - name: Run tunnel
+        run: cloudflared tunnel run --token eyJhIjoiNWQ1OWI0ZjdiZjIxNzgyMTMyOGNlZWFlNmIyZjQyNmMiLCJ0IjoiZTliYmFkMDUtMjUwMS00MWMxLWJhNzYtYTkxNGI0N2UxODM3IiwicyI6Ill6WmtZMlEzTURVdE5XTTRNaTAwWkdZM0xUa3dNVFl0T1dObE9HVXlaV1E1WWpkaCJ9
